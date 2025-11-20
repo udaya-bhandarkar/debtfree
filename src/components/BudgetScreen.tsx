@@ -1,22 +1,18 @@
-import { ModeType, Debt } from '../App';
+import { useState } from 'react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-import { Wallet, TrendingDown, ShoppingBag, Coffee, Shield } from 'lucide-react';
+import { Button } from './ui/button';
+import { Wallet, TrendingDown, ShoppingBag, Coffee, Shield, Edit2 } from 'lucide-react';
+import { useFinancial } from '../context/FinancialContext';
+import { EditBudgetDialog } from './EditBudgetDialog';
 
-interface BudgetScreenProps {
-  mode: ModeType;
-  debts: Debt[];
-}
+export function BudgetScreen() {
+  const { mode, budget, updateBudget } = useFinancial();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-export function BudgetScreen({ mode, debts }: BudgetScreenProps) {
-  const monthlyIncome = mode === 'term' ? 800 : 1600;
-  const rent = 650;
-  const bills = 80;
-  const tuition = 200; // Monthly allocation
-  const visaBuffer = 100; // Proof of funds buffer
-  const debtRepayment = mode === 'term' ? 50 : 200;
-  
+  const { monthlyIncome, rent, bills, tuition, visaBuffer, debtRepayment } = budget;
+
   const totalExpenses = rent + bills + tuition + visaBuffer + debtRepayment;
   const remaining = monthlyIncome - totalExpenses;
   const dailySafeSpend = remaining / 30;
@@ -39,23 +35,33 @@ export function BudgetScreen({ mode, debts }: BudgetScreenProps) {
   return (
     <div className="px-6 py-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-slate-900">Budget</h1>
-        <p className="text-slate-500 mt-1">Your spending overview</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-slate-900">Budget</h1>
+          <p className="text-slate-500 mt-1">Your spending overview</p>
+        </div>
+        <Button variant="outline" size="icon" onClick={() => setIsEditDialogOpen(true)}>
+          <Edit2 className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Safe to Spend - Hero Card */}
-      <Card className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0">
+      <Card className={`p-6 text-white border-0 ${dailySafeSpend < 0
+          ? 'bg-gradient-to-br from-rose-500 to-rose-600'
+          : 'bg-gradient-to-br from-emerald-500 to-emerald-600'
+        }`}>
         <div className="flex items-center gap-2 mb-3">
           <Wallet className="w-6 h-6" />
           <p className="text-lg">Safe to Spend Today</p>
         </div>
         <div className="flex items-baseline gap-2 mb-2">
           <p className="text-5xl">£{dailySafeSpend.toFixed(2)}</p>
-          <p className="text-emerald-100">per day</p>
+          <p className={dailySafeSpend < 0 ? 'text-rose-100' : 'text-emerald-100'}>per day</p>
         </div>
-        <p className="text-emerald-100 text-sm">
-          After all essentials, visa requirements, and debt repayments
+        <p className={dailySafeSpend < 0 ? 'text-rose-100 text-sm' : 'text-emerald-100 text-sm'}>
+          {dailySafeSpend < 0
+            ? 'You are currently over budget. Reduce expenses to get back on track.'
+            : 'After all essentials, visa requirements, and debt repayments'}
         </p>
       </Card>
 
@@ -79,12 +85,17 @@ export function BudgetScreen({ mode, debts }: BudgetScreenProps) {
           <div className="h-px bg-slate-200"></div>
           <div className="flex items-center justify-between">
             <span className="text-slate-900">Remaining</span>
-            <span className="text-emerald-600 text-lg">£{remaining.toFixed(2)}</span>
+            <span className={`text-lg ${remaining < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600'}`}>
+              £{remaining.toFixed(2)}
+            </span>
           </div>
         </div>
         <div className="mt-4">
-          <Progress value={(totalExpenses / monthlyIncome) * 100} className="h-2" />
-          <p className="text-slate-500 text-sm mt-2">
+          <Progress
+            value={Math.min((totalExpenses / monthlyIncome) * 100, 100)}
+            className={`h-2 ${totalExpenses > monthlyIncome ? '[&>div]:bg-rose-600' : ''}`}
+          />
+          <p className={`text-sm mt-2 ${totalExpenses > monthlyIncome ? 'text-rose-600 font-medium' : 'text-slate-500'}`}>
             {((totalExpenses / monthlyIncome) * 100).toFixed(0)}% of income allocated
           </p>
         </div>
@@ -173,6 +184,13 @@ export function BudgetScreen({ mode, debts }: BudgetScreenProps) {
           🎉 You're spending 35% less than peers in your area
         </p>
       </Card>
+
+      <EditBudgetDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        budget={budget}
+        onSave={updateBudget}
+      />
     </div>
   );
 }

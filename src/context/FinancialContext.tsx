@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ModeType, WorkShift, Debt } from '../types';
+import { ModeType, WorkShift, Debt, Budget } from '../types';
 
 interface FinancialContextType {
     mode: ModeType;
@@ -8,9 +8,11 @@ interface FinancialContextType {
     degreeProgress: number;
     shifts: WorkShift[];
     debts: Debt[];
+    budget: Budget;
     toggleMode: (mode: ModeType) => void;
     addShift: (hours: number, location: string, date: string) => void;
     reportRent: () => void;
+    updateBudget: (newBudget: Budget) => void;
 }
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
@@ -70,12 +72,32 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
         },
     ]);
 
+    const [budget, setBudget] = useState<Budget>({
+        monthlyIncome: 800,
+        rent: 650,
+        bills: 80,
+        tuition: 200,
+        visaBuffer: 100,
+        debtRepayment: 50,
+    });
+
     const toggleMode = (newMode: ModeType) => {
         setMode(newMode);
         if (newMode === "holiday") {
             setWorkHours(0);
+            // Update budget income for holiday mode
+            setBudget(prev => ({
+                ...prev,
+                monthlyIncome: 1600,
+                debtRepayment: 200
+            }));
         } else {
             setWorkHours(18);
+            setBudget(prev => ({
+                ...prev,
+                monthlyIncome: 800,
+                debtRepayment: 50
+            }));
         }
     };
 
@@ -96,6 +118,10 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
         setDegreeProgress(Math.min(100, degreeProgress + 3));
     };
 
+    const updateBudget = (newBudget: Budget) => {
+        setBudget(newBudget);
+    };
+
     return (
         <FinancialContext.Provider
             value={{
@@ -105,9 +131,11 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
                 degreeProgress,
                 shifts,
                 debts,
+                budget,
                 toggleMode,
                 addShift,
                 reportRent,
+                updateBudget,
             }}
         >
             {children}

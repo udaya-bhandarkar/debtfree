@@ -16,3 +16,12 @@ export interface Debt {
   originalAmount?: number;
   exchangeRate?: number;
 }
+
+export interface Budget {
+  monthlyIncome: number;
+  rent: number;
+  bills: number;
+  tuition: number;
+  visaBuffer: number;
+  debtRepayment: number;
+}

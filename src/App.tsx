@@ -17,7 +17,7 @@ export type { ModeType, WorkShift, Debt } from "./types";
 
 function AppContent() {
   const [activeScreen, setActiveScreen] = useState<
-    "home" | "credit" | "work" | "profile"
+    "home" | "credit" | "work" | "profile" | "budget"
   >("home");
 
   const [isLogWorkModalOpen, setIsLogWorkModalOpen] = useState(false);
@@ -45,6 +45,8 @@ function AppContent() {
             degreeProgress={degreeProgress}
           />
         );
+      case "budget":
+        return <BudgetScreen />;
       case "credit":
         return (
           <CreditDebtScreen
