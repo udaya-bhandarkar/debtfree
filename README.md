@@ -1,7 +1,7 @@
 
   # Debt Management App Prototype
 
-  This is a code bundle for Debt Management App Prototype. The original project is available at https://www.figma.com/design/dHjXAbGChHuPDvPfKdvYN2/Debt-Management-App-Prototype.
+  This is a code bundle for Debt Management App Prototype. The front end mock up is available at (https://www.figma.com/make/dHjXAbGChHuPDvPfKdvYN2/Debt-Management-App-Prototype?t=0QFUQgeo85p3yLsm-20&fullscreen=1)
 
   ## Running the code
 
