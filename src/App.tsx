@@ -8,116 +8,31 @@ import { BottomNav } from "./components/BottomNav";
 import { FloatingActionButton } from "./components/FloatingActionButton";
 import { LogWorkModal } from "./components/LogWorkModal";
 import { Toaster } from "./components/ui/sonner";
+import { FinancialProvider, useFinancial } from "./context/FinancialContext";
+import { ModeType } from "./types";
 
-export type ModeType = "term" | "holiday";
+// Export types from types.ts for backward compatibility if needed, 
+// though components should import from types.ts directly now.
+export type { ModeType, WorkShift, Debt } from "./types";
 
-export interface WorkShift {
-  id: string;
-  date: string;
-  hours: number;
-  location: string;
-}
-
-export interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-  currency: string;
-  type: "gbp" | "foreign";
-  originalAmount?: number;
-  exchangeRate?: number;
-}
-
-export default function App() {
+function AppContent() {
   const [activeScreen, setActiveScreen] = useState<
     "home" | "credit" | "work" | "profile"
   >("home");
-  const [mode, setMode] = useState<ModeType>("term");
-  const [workHours, setWorkHours] = useState(18);
-  const [creditScore, setCreditScore] = useState(580);
-  const [isLogWorkModalOpen, setIsLogWorkModalOpen] =
-    useState(false);
-  const [shifts, setShifts] = useState<WorkShift[]>([
-    {
-      id: "1",
-      date: "2025-11-20",
-      hours: 6,
-      location: "Costa Coffee",
-    },
-    {
-      id: "2",
-      date: "2025-11-22",
-      hours: 8,
-      location: "Costa Coffee",
-    },
-    {
-      id: "3",
-      date: "2025-11-23",
-      hours: 4,
-      location: "Library Support",
-    },
-  ]);
-  const [debts, setDebts] = useState<Debt[]>([
-    {
-      id: "1",
-      name: "Monzo Flex",
-      amount: 150,
-      currency: "GBP",
-      type: "gbp",
-    },
-    {
-      id: "2",
-      name: "Student Loan",
-      amount: 3500000,
-      currency: "INR",
-      type: "foreign",
-      originalAmount: 3500000,
-      exchangeRate: 0.00862,
-    },
-    {
-      id: "3",
-      name: "Credit Card",
-      amount: 85000,
-      currency: "INR",
-      type: "foreign",
-      originalAmount: 85000,
-      exchangeRate: 0.00862,
-    },
-  ]);
-  const [degreeProgress, setDegreeProgress] = useState(35);
 
-  const handleLogWork = (
-    hours: number,
-    location: string,
-    date: string,
-  ) => {
-    const newShift: WorkShift = {
-      id: Date.now().toString(),
-      date,
-      hours,
-      location,
-    };
-    setShifts([newShift, ...shifts]);
-    setWorkHours(workHours + hours);
+  const [isLogWorkModalOpen, setIsLogWorkModalOpen] = useState(false);
 
-    // Increase degree progress
-    setDegreeProgress(Math.min(100, degreeProgress + 2));
-  };
-
-  const handleReportRent = () => {
-    setCreditScore(creditScore + 5);
-    setDegreeProgress(Math.min(100, degreeProgress + 3));
-  };
-
-  const handleModeToggle = (newMode: ModeType) => {
-    setMode(newMode);
-    // Reset work hours when switching modes
-    if (newMode === "holiday") {
-      setWorkHours(0);
-    } else {
-      setWorkHours(18);
-    }
-  };
+  const {
+    mode,
+    workHours,
+    creditScore,
+    degreeProgress,
+    shifts,
+    debts,
+    toggleMode,
+    addShift,
+    reportRent
+  } = useFinancial();
 
   const renderScreen = () => {
     switch (activeScreen) {
@@ -126,14 +41,14 @@ export default function App() {
           <Dashboard
             mode={mode}
             workHours={workHours}
-            onModeToggle={handleModeToggle}
+            onModeToggle={toggleMode}
             degreeProgress={degreeProgress}
           />
         );
       case "credit":
         return (
           <CreditDebtScreen
-            onReportRent={handleReportRent}
+            onReportRent={reportRent}
             initialCreditScore={creditScore}
             debts={debts}
             mode={mode}
@@ -159,7 +74,7 @@ export default function App() {
           <Dashboard
             mode={mode}
             workHours={workHours}
-            onModeToggle={handleModeToggle}
+            onModeToggle={toggleMode}
             degreeProgress={degreeProgress}
           />
         );
@@ -188,7 +103,7 @@ export default function App() {
       <LogWorkModal
         isOpen={isLogWorkModalOpen}
         onClose={() => setIsLogWorkModalOpen(false)}
-        onLogWork={handleLogWork}
+        onLogWork={addShift}
         mode={mode}
         currentHours={workHours}
       />
@@ -196,5 +111,13 @@ export default function App() {
       {/* Toast Notifications */}
       <Toaster position="top-center" />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <FinancialProvider>
+      <AppContent />
+    </FinancialProvider>
   );
 }
